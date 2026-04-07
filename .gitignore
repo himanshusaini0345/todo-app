@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build directories
+frontend/dist/
+frontend/build-*/
+
+# Database backups (from our db-ops script)
+backend/backups/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# PM2
+ecosystem.config.js*
+.pm2/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
