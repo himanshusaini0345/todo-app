@@ -28,7 +28,7 @@ function App() {
       const res = await fetch(`${API_BASE}/todos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTodo, status: 'pending' })
+        body: JSON.stringify({ title: newTodo, completed: false })
       });
       const data = await res.json();
       setTodos([data, ...todos]);
@@ -38,19 +38,13 @@ function App() {
     }
   }
 
-  const toggleTodo = async (id, currentStatus) => {
+  const toggleTodo = async (id, currentCompleted) => {
     try {
-      const nextStatusMap = {
-        'pending': 'in-progress',
-        'in-progress': 'completed',
-        'completed': 'pending'
-      };
-      const nextStatus = nextStatusMap[currentStatus || 'pending'];
-      setTodos(todos.map(t => t._id === id ? { ...t, status: nextStatus } : t));
+      setTodos(todos.map(t => t._id === id ? { ...t, completed: !currentCompleted } : t));
       await fetch(`${API_BASE}/todos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ completed: !currentCompleted })
       });
     } catch (err) {
       console.error(err);
@@ -72,7 +66,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Focus Flow (V2)</h1>
+      <h1>Focus Flow</h1>
       <form className="input-group" onSubmit={handleAdd}>
         <input 
           type="text" 
@@ -84,19 +78,19 @@ function App() {
       </form>
       <ul className="todo-list">
         {todos.map(todo => (
-          <li key={todo._id} className={`todo-item ${todo.status === 'completed' ? 'completed' : ''}`}>
-            <div className="todo-left" onClick={() => toggleTodo(todo._id, todo.status)}>
-              <div className={`status-badge ${todo.status || 'pending'}`}>
-                {(todo.status || 'pending').replace('-', ' ').toUpperCase()}
+          <li key={todo._id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+            <div className="todo-left" onClick={() => toggleTodo(todo._id, todo.completed)}>
+              <div className={`checkbox ${todo.completed ? 'checked' : ''}`}>
+                <div className="checkbox-inner"></div>
               </div>
-              <span className={`todo-text ${todo.status === 'completed' ? 'completed-text' : ''}`}>{todo.title}</span>
+              <span className="todo-text">{todo.title}</span>
             </div>
             <button className="delete-btn" onClick={() => deleteTodo(todo._id)}>Delete</button>
           </li>
         ))}
       </ul>
     </div>
-  );
+  )
 }
 
 export default App;
