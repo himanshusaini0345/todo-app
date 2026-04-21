@@ -31,11 +31,11 @@ const getApps = (envName) => {
   } else {
     apps.push({
       name: `${envName}-frontend`,
-      script: "serve.js",
+      script: "./node_modules/serve/build/main.js",
+      args: `-s ${config.frontend.BUILD_FOLDER} -p ${config.frontend.PORT}`,
       cwd: "./frontend",
       env: {
         PORT: config.frontend.PORT,
-        BUILD_FOLDER: config.frontend.BUILD_FOLDER,
         NODE_ENV: envName
       }
     });

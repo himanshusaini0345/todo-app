@@ -8,6 +8,7 @@ node_modules/
 
 # Build directories
 frontend/dist/
+frontend/dist-*/
 frontend/build-*/
 
 # Database backups (from our db-ops script)
