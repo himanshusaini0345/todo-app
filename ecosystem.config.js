@@ -12,6 +12,7 @@ module.exports = {
     {
       name: "prod-frontend",
       script: "serve.js",
+      interpreter: "node",
       cwd: "./frontend",
       env: {
         PORT: 5002,
