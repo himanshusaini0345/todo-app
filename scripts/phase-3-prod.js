@@ -21,10 +21,16 @@ run('node bin/db-ops.js migrate', BACKEND_DIR, { MONGO_URI: URI });
 
 // 3. Deploy Express
 console.log("\n[Step 3] Deploy Express: Server handles old React clients and new ones natively.");
-try { execSync('npx.cmd pm2 stop prod-backend', { cwd: BACKEND_DIR, stdio: 'ignore' }); } catch(e){}
-run('npx.cmd pm2 restart prod-backend --update-env', BACKEND_DIR, { 
-   FEATURE_NEW_STATUS: 'true' 
-});
+try {
+  run("npx.cmd pm2 restart prod-backend --update-env", BACKEND_DIR, {
+    FEATURE_NEW_STATUS: "true",
+  });
+} catch (e) {
+  console.log("-> Process 'prod-backend' not found in PM2. Starting fresh from ecosystem config...");
+  run("npx.cmd pm2 start ecosystem.config.js --only prod-backend --update-env", path.join(__dirname, ".."), {
+    FEATURE_NEW_STATUS: "true",
+  });
+}
 
 // 4. Health Check
 console.log("\n[Step 4] Health Check Gate: Waiting for metrics...");
@@ -34,10 +40,20 @@ console.log("-> Connection counts normal. Error rates green.");
 // 5. Deploy React
 console.log("\n[Step 5] Deploy React: Route traffic to new V2 build.");
 run('npm.cmd run build', FRONTEND_DIR, { VITE_API_URL: 'http://localhost:4002/api' });
+try { execSync('npx.cmd pm2 stop prod-frontend', { cwd: FRONTEND_DIR, stdio: 'ignore' }); } catch(e){}
 try { execSync('rmdir /S /Q build-prod-v2', { cwd: FRONTEND_DIR, stdio: 'ignore' }); } catch(e){}
 run('rename dist build-prod-v2', FRONTEND_DIR);
 
-try { execSync('npx.cmd pm2 stop prod-frontend', { cwd: FRONTEND_DIR, stdio: 'ignore' }); } catch(e){}
-run(`npx.cmd pm2 start npx.cmd --name "prod-frontend" -- serve -s build-prod-v2 -p 5002`, FRONTEND_DIR);
+console.log("-> Restarting frontend static server...");
+try {
+  run(`npx.cmd pm2 restart prod-frontend --update-env`, path.join(__dirname, ".."), {
+    BUILD_FOLDER: "build-prod-v2",
+  });
+} catch (e) {
+  console.log("-> Process 'prod-frontend' not found in PM2. Starting fresh from ecosystem config...");
+  run(`npx.cmd pm2 start ecosystem.config.js --only prod-frontend --update-env`, path.join(__dirname, ".."), {
+    BUILD_FOLDER: "build-prod-v2",
+  });
+}
 
 console.log("\n=== PRODUCTION DEPLOYMENT COMPLETE & GREEN ===");
