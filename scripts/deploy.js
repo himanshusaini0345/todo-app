@@ -11,16 +11,18 @@ if (!environments[targetEnv]) {
   process.exit(1);
 }
 
-const config = environments[targetEnv].backend;
-if (!config.DEPLOY_FOLDER) {
+const config = environments[targetEnv];
+if (!config || !config.backend || !config.backend.DEPLOY_FOLDER) {
   console.error(`Error: DEPLOY_FOLDER not defined for environment "${targetEnv}"`);
   process.exit(1);
 }
 
 const sourceDir = path.join(__dirname, '../backend');
-const targetDir = path.join(__dirname, '..', config.DEPLOY_FOLDER);
+const targetDir = path.join(__dirname, '..', config.backend.DEPLOY_FOLDER);
 
-console.log(`🚀 Deploying ${targetEnv} to ${targetDir}...`);
+console.log(`🚀 Deploying ${targetEnv} backend to ${targetDir}...`);
+
+// --- BACKEND PROMOTION ---
 
 // 1. Ensure target directory exists and is clean
 if (fs.existsSync(targetDir)) {
@@ -30,7 +32,7 @@ if (fs.existsSync(targetDir)) {
 fs.mkdirSync(targetDir, { recursive: true });
 
 // 2. Copy source files (excluding node_modules)
-console.log(`📦 Copying source files from ${sourceDir}...`);
+console.log(`📦 Copying backend source files from ${sourceDir}...`);
 fs.cpSync(sourceDir, targetDir, {
   recursive: true,
   filter: (src) => {
@@ -52,18 +54,49 @@ try {
   process.exit(1);
 }
 
-// 4. Restart PM2 process
-const processName = `${targetEnv}-backend`;
-console.log(`🔄 Restarting PM2 process: ${processName}...`);
+// 4. Restart Backend PM2 process
+const backendProcessName = `${targetEnv}-backend`;
+console.log(`🔄 Restarting PM2 process: ${backendProcessName}...`);
 try {
-  execSync(`npx pm2 restart "${processName}"`, { stdio: 'inherit' });
+  execSync(`npx pm2 restart "${backendProcessName}"`, { stdio: 'inherit' });
 } catch (err) {
-  console.log(`⚠️ PM2 restart failed (process might not be running). Attempting to start with ecosystem config...`);
+  console.log(`⚠️ PM2 restart failed. Attempting to start...`);
   try {
-     execSync(`npx pm2 start ecosystem.config.js --only "${processName}"`, { stdio: 'inherit' });
+     execSync(`npx pm2 start ecosystem.config.js --only "${backendProcessName}"`, { stdio: 'inherit' });
   } catch (startErr) {
-     console.error(`❌ Failed to start process ${processName}`);
+     console.error(`❌ Failed to start process ${backendProcessName}`);
   }
 }
 
-console.log(`✅ Deployment to ${targetEnv} complete!`);
+// --- FRONTEND PROMOTION ---
+
+console.log(`🏗️ Building and Promoting ${targetEnv} frontend...`);
+const frontendDir = path.join(__dirname, '../frontend');
+const apiUrl = `http://localhost:${config.backend.PORT}/api`;
+const buildFolder = config.frontend.BUILD_FOLDER || `dist-${targetEnv}`;
+
+try {
+  console.log(`🔨 Running build with API URL: ${apiUrl}...`);
+  execSync(`npx vite build --outDir ${buildFolder}`, {
+    cwd: frontendDir,
+    stdio: 'inherit',
+    env: { 
+      ...process.env, 
+      VITE_API_URL: apiUrl 
+    }
+  });
+
+  const frontendProcessName = `${targetEnv}-frontend`;
+  console.log(`🔄 Restarting PM2 process: ${frontendProcessName}...`);
+  try {
+    execSync(`npx pm2 restart "${frontendProcessName}"`, { stdio: 'inherit' });
+  } catch (err) {
+    console.log(`⚠️ PM2 restart failed. Attempting to start...`);
+    execSync(`npx pm2 start ecosystem.config.js --only "${frontendProcessName}"`, { stdio: 'inherit' });
+  }
+} catch (err) {
+  console.error('❌ Frontend build/promotion failed');
+  process.exit(1);
+}
+
+console.log(`✅ ${targetEnv.toUpperCase()} Full-Stack Deployment Complete!`);
