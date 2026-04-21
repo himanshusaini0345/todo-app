@@ -8,13 +8,9 @@ const getApps = (envName) => {
     {
       name: `${envName}-backend`,
       script: "server.js",
-<<<<<<< Updated upstream
-      cwd: "./backend",
-=======
       cwd: config.backend.DEPLOY_FOLDER ? `./${config.backend.DEPLOY_FOLDER}` : "./backend",
       watch: envName === 'development',
       ignore_watch: ["node_modules", "logs", "deploy"],
->>>>>>> Stashed changes
       env: {
         PORT: config.backend.PORT,
         MONGO_URI: config.backend.MONGO_URI,
