@@ -10,23 +10,17 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/todo_dev';
-
+/** 
+ * CONTRACTION PHASE:
+ * Legacy 'completed' field and synchronization logic removed.
+ * The system now natively uses the 'status' enum.
+ */
 mongoose.connect(MONGO_URI)
   .then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
   .catch((err) => {
     console.error(`MongoDB connection error: ${err}`);
     process.exit(1);
   });
-
-// Helper to sync legacy 'completed' (boolean) and new 'status' (enum)
-const syncFields = (data) => {
-  if (data.status !== undefined) {
-    data.completed = data.status === 'completed';
-  } else if (data.completed !== undefined) {
-    data.status = data.completed ? 'completed' : 'pending';
-  }
-  return data;
-};
 
 // Routes
 app.get('/api/todos', async (req, res) => {
@@ -40,8 +34,7 @@ app.get('/api/todos', async (req, res) => {
 
 app.post('/api/todos', async (req, res) => {
   try {
-    const data = syncFields(req.body);
-    const newTodo = new Todo(data);
+    const newTodo = new Todo(req.body);
     await newTodo.save();
     res.status(201).json(newTodo);
   } catch (err) {
@@ -51,8 +44,7 @@ app.post('/api/todos', async (req, res) => {
 
 app.put('/api/todos/:id', async (req, res) => {
   try {
-    const data = syncFields(req.body);
-    const updated = await Todo.findByIdAndUpdate(req.params.id, data, { new: true });
+    const updated = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
