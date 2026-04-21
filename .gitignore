@@ -19,7 +19,6 @@ logs
 npm-debug.log*
 
 # PM2
-ecosystem.config.js*
 .pm2/
 
 # IDE and OS files
