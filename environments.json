@@ -13,7 +13,8 @@
   "staging": {
     "backend": {
       "PORT": 4001,
-      "MONGO_URI": "mongodb://127.0.0.1:27017/todo_staging"
+      "MONGO_URI": "mongodb://127.0.0.1:27017/todo_staging",
+      "DEPLOY_FOLDER": "deploy/staging/backend"
     },
     "frontend": {
       "PORT": 5001,
@@ -24,7 +25,8 @@
   "production": {
     "backend": {
       "PORT": 4002,
-      "MONGO_URI": "mongodb://127.0.0.1:27017/todo_prod"
+      "MONGO_URI": "mongodb://127.0.0.1:27017/todo_prod",
+      "DEPLOY_FOLDER": "deploy/production/backend"
     },
     "frontend": {
       "PORT": 5002,

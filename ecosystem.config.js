@@ -8,7 +8,14 @@ const getApps = (envName) => {
     {
       name: `${envName}-backend`,
       script: "server.js",
-      cwd: "./backend",
+      cwd: config.backend.DEPLOY_FOLDER ? `./${config.backend.DEPLOY_FOLDER}` : "./backend",
+      watch: envName === 'development',
+      watch_options: {
+        followSymlinks: false,
+        usePolling: true,
+        interval: 1000
+      },
+      ignore_watch: ["node_modules", "logs", "deploy"],
       env: {
         PORT: config.backend.PORT,
         MONGO_URI: config.backend.MONGO_URI,
