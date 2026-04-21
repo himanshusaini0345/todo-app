@@ -19,13 +19,6 @@ mongoose.connect(MONGO_URI)
   });
 
 // Routes
-app.get('/api/config', (req, res) => {
-  // Feature flag endpoint
-  res.json({
-    FEATURE_NEW_STATUS: process.env.FEATURE_NEW_STATUS === 'true'
-  });
-});
-
 app.get('/api/todos', async (req, res) => {
   try {
     const todos = await Todo.find().sort({ createdAt: -1 });
@@ -37,16 +30,7 @@ app.get('/api/todos', async (req, res) => {
 
 app.post('/api/todos', async (req, res) => {
   try {
-    const data = req.body;
-    // Map V1 -> V2
-    if ('completed' in data && (!data.status || data.status === 'pending' || data.status === 'completed')) {
-      data.status = data.completed ? 'completed' : 'pending';
-    }
-    // Map V2 -> V1
-    if ('status' in data) {
-      data.completed = data.status === 'completed';
-    }
-    const newTodo = new Todo(data);
+    const newTodo = new Todo(req.body);
     await newTodo.save();
     res.status(201).json(newTodo);
   } catch (err) {
@@ -56,21 +40,7 @@ app.post('/api/todos', async (req, res) => {
 
 app.put('/api/todos/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = req.body;
-    // Map V1 -> V2
-    if ('completed' in data && !('status' in data)) {
-      data.status = data.completed ? 'completed' : 'pending';
-    }
-    // Map V2 -> V1
-    if ('status' in data) {
-      data.completed = data.status === 'completed';
-    }
-    const updated = await Todo.findByIdAndUpdate(
-      id,
-      data,
-      { new: true }
-    );
+    const updated = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });

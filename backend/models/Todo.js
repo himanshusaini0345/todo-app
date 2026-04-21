@@ -8,11 +8,6 @@ const todoSchema = new mongoose.Schema({
   completed: {
     type: Boolean,
     default: false,
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'in-progress', 'completed'],
-    default: 'pending'
   }
 }, { timestamps: true });
 
