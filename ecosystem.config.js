@@ -8,7 +8,7 @@ const getApps = (envName) => {
     {
       name: `${envName}-backend`,
       script: "server.js",
-      cwd: "./backend",
+      cwd: config.backend.DEPLOY_FOLDER ? `./${config.backend.DEPLOY_FOLDER}` : "./backend",
       env: {
         PORT: config.backend.PORT,
         MONGO_URI: config.backend.MONGO_URI,
