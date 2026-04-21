@@ -10,7 +10,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/todo_dev';
-
+/** 
+ * CONTRACTION PHASE:
+ * Legacy 'completed' field and synchronization logic removed.
+ * The system now natively uses the 'status' enum.
+ */
 mongoose.connect(MONGO_URI)
   .then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
   .catch((err) => {
